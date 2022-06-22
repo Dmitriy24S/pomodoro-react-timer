@@ -5,10 +5,12 @@ import TimerControls from "./components/TimerControls";
 import TimerStatus from "./components/TimerStatus";
 
 function App() {
+  let presetWorkMinutes = 25;
+  let presetBreakMinutes = 5;
   const [timerMode, setTimerMode] = useState<string>("active");
   const [isPaused, setIsPaused] = useState<boolean>(true);
-  const [workMinutes, setWorkMinutes] = useState<number>(1); // 1 minute
-  const [breakMinutes, setBreakMinutes] = useState<number>(2); // 2 minute
+  const [workMinutes, setWorkMinutes] = useState<number>(15); // 15 minutes work/study session
+  const [breakMinutes, setBreakMinutes] = useState<number>(5); // 5 minutes break
   const [intervalId, setIntervalId] = useState<NodeJS.Timer | null>(null);
 
   // Timer time minutes into seconds
@@ -19,10 +21,11 @@ function App() {
   let seconds: number | string = secondsLeft % 60;
   if (seconds < 10) seconds = "0" + seconds; // to show two digits e.g: 09 08 05 00 instead of: 9 8 5 0
   // Total seconds in current timer mode
-  const totalSeconds: number =
+  let totalSeconds: number =
     timerMode === "active" ? workMinutes * 60 : breakMinutes * 60;
   // Relative % left - to display on timer
-  const percentage: number = Math.round((secondsLeft / totalSeconds) * 100);
+  // let percentage: number = Math.round((secondsLeft / totalSeconds) * 100);
+  let percentage: number = (secondsLeft / totalSeconds) * 100;
 
   const handleStartStopClick = () => {
     if (isPaused) {
@@ -50,7 +53,9 @@ function App() {
     }
     setTimerMode("active");
     // set to initial work time
-    setSecondsLeft(workMinutes * 60);
+    // setSecondsLeft(workMinutes * 60);
+    setWorkMinutes(presetWorkMinutes);
+    setBreakMinutes(presetBreakMinutes);
   };
 
   // Switch timer mode(work/break) when timer reaches 0 and update time
@@ -65,6 +70,44 @@ function App() {
       }
     }
   }, [secondsLeft, timerMode]);
+
+  // Session time adjustment
+  const incrementWorkTime = () => {
+    if (workMinutes >= 1) {
+      setWorkMinutes((prevTime) => prevTime + 1);
+    }
+  };
+  const decrementWorkTime = () => {
+    if (workMinutes > 1) {
+      setWorkMinutes((prevTime) => prevTime - 1);
+    }
+  };
+
+  // Break time adjustment
+  const incrementBreakTime = () => {
+    if (breakMinutes >= 1) {
+      setBreakMinutes((prevTime) => prevTime + 1);
+    }
+  };
+  const decrementBreakTime = () => {
+    if (breakMinutes > 1) {
+      setBreakMinutes((prevTime) => prevTime - 1);
+    }
+  };
+
+  // Update timer if change break time amount
+  useEffect(() => {
+    if (timerMode === "break") {
+      setSecondsLeft(breakMinutes * 60);
+    }
+  }, [breakMinutes]);
+
+  // Update timer if change session time amount
+  useEffect(() => {
+    if (timerMode === "active") {
+      setSecondsLeft(workMinutes * 60);
+    }
+  }, [workMinutes]);
 
   return (
     <div className="App text-center">
@@ -83,8 +126,14 @@ function App() {
           handleStartStopClick={handleStartStopClick}
           handleResetClick={handleResetClick}
           isPaused={isPaused}
-          secondsLeft={secondsLeft}
-          totalSeconds={totalSeconds}
+          workMinutes={workMinutes}
+          breakMinutes={breakMinutes}
+          incrementWorkTime={incrementWorkTime}
+          decrementWorkTime={decrementWorkTime}
+          incrementBreakTime={incrementBreakTime}
+          decrementBreakTime={decrementBreakTime}
+          setBreakMinutes={setBreakMinutes}
+          setWorkMinutes={setWorkMinutes}
         />
       </section>
     </div>

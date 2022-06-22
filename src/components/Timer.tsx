@@ -15,6 +15,7 @@ interface TimerProps {
 const Timer = ({ percentage, minutes, seconds, timerMode }: TimerProps) => {
   return (
     <div className="circle w-72 mx-auto mt-8">
+      {/* Timer progress circle */}
       <CircularProgressbar
         value={percentage}
         text={minutes + ":" + seconds}
