@@ -4,7 +4,13 @@ import Timer from "./components/Timer";
 import TimerControls from "./components/TimerControls";
 import TimerStatus from "./components/TimerStatus";
 
+import useSound from "use-sound";
+let audioFx = require("./audio/tick.wav");
+
 function App() {
+  // const audioElement = useRef<HTMLAudioElement>(null);
+  const [play, { stop }] = useSound(audioFx);
+
   let presetWorkMinutes = 25;
   let presetBreakMinutes = 5;
   const [timerMode, setTimerMode] = useState<string>("active");
@@ -45,6 +51,7 @@ function App() {
   };
 
   const handleResetClick = () => {
+    stop(); // stop audio
     // set timer to paused
     // remove interval/ stop countdown
     setIsPaused(true);
@@ -61,6 +68,11 @@ function App() {
   // Switch timer mode(work/break) when timer reaches 0 and update time
   useEffect(() => {
     if (secondsLeft === 0) {
+      // audioElement?.current?.play(); // play the audio
+      play(); // play the audio
+      setTimeout(() => {
+        stop();
+      }, 4000); // stop audio after 4sec
       if (timerMode === "active") {
         setTimerMode("break");
         setSecondsLeft(breakMinutes * 60);
@@ -136,6 +148,9 @@ function App() {
           setWorkMinutes={setWorkMinutes}
         />
       </section>
+      {/* <audio id="beep" ref={audioElement}>
+        <source src="./audio/tick.wav" type="audio/mpeg" />
+      </audio> */}
     </div>
   );
 }
