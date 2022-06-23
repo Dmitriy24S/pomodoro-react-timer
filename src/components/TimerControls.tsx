@@ -33,6 +33,7 @@ const TimerControls = ({
     <>
       <section className="button-container flex gap-4 justify-center mt-8">
         <button
+          data-testid="startPauseTimerButton"
           className="border rounded-md py-2 px-4 w-24 hover:bg-white hover:bg-opacity-20"
           onClick={() => {
             handleStartStopClick();
@@ -97,11 +98,13 @@ const TimerControls = ({
           <div className="flex items-center">
             <button
               onClick={incrementBreakTime}
+              data-testid="incrementBreakBtn"
               className="px-2 text-xl min-w-[2rem] hover:font-bold"
             >
               +
             </button>
             <input
+              data-testid="counterBreakInput"
               aria-label="set break duration"
               type="number"
               value={breakMinutes}
