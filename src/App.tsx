@@ -30,7 +30,9 @@ interface TimerProps {
 function App() {
   // Audio
   // const audioElement = useRef<HTMLAudioElement>(null);
-  const [play, { stop }] = useSound(audioFx);
+  const [volume, setVolume] = useState(100); // 0=muted, 1=max volume
+  // const [play, { stop }] = useSound(audioFx, { volume: volume });
+  const [play, { stop }] = useSound(audioFx, { volume: volume / 100 }); // 0=muted, 1=max volume
   // State countdown interval
   const [intervalId, setIntervalId] = useState<NodeJS.Timer | null>(null);
   // Redux
@@ -102,7 +104,7 @@ function App() {
         Pomodoro Timer
       </h1>
       <section>
-        <Timer />
+        <Timer volume={volume} setVolume={setVolume} />
         <TimerStatus />
         <TimerControls stop={stop} />
       </section>
