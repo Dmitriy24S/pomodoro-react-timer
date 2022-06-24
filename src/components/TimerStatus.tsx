@@ -1,9 +1,16 @@
+import { useSelector } from "react-redux";
+
 interface TimerStatusProps {
-  isPaused: boolean;
-  timerMode: string;
+  timer: {
+    isPaused: boolean;
+    timerMode: string;
+  };
 }
 
-const TimerStatus = ({ isPaused, timerMode }: TimerStatusProps) => {
+const TimerStatus = () => {
+  const { isPaused, timerMode } = useSelector(
+    (state: TimerStatusProps) => state.timer
+  );
   return (
     <section className="timer-mode p-6 capitalize">
       <p data-testid="timerStatus">
