@@ -30,8 +30,21 @@ interface TimerProps {
 function App() {
   // Audio
   // const audioElement = useRef<HTMLAudioElement>(null);
-  const [volume, setVolume] = useState(100); // 0=muted, 1=max volume
-  // const [play, { stop }] = useSound(audioFx, { volume: volume });
+  // const [volume, setVolume] = useState(75); // 0=muted, 1=max volume
+  const [volume, setVolume] = useState(
+    JSON.parse(localStorage.getItem("timer") as string) || 75
+  ); // 0=muted, 1=max volume,  // Get volume from local storage
+  // Save volume to local storage
+  useEffect(() => {
+    localStorage.setItem("timer", JSON.stringify(volume));
+  }, [volume]);
+  // Get volume from local storage // ? get overwriten on state initializon on refresh
+  // useEffect(() => {
+  // const volume = localStorage.getItem("timer");
+  // if (volume) {
+  // setVolume(JSON.parse(volume));
+  // }
+  // }, []);
   const [play, { stop }] = useSound(audioFx, { volume: volume / 100 }); // 0=muted, 1=max volume
   // State countdown interval
   const [intervalId, setIntervalId] = useState<NodeJS.Timer | null>(null);
