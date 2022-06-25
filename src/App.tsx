@@ -103,7 +103,7 @@ function App() {
       <h1 className="font-bold text-2xl uppercase tracking-widest mt-10">
         Pomodoro Timer
       </h1>
-      <section>
+      <section className="mb-14">
         <Timer volume={volume} setVolume={setVolume} />
         <TimerStatus />
         <TimerControls stop={stop} />
