@@ -4,138 +4,126 @@ import Timer from "./components/Timer";
 import TimerControls from "./components/TimerControls";
 import TimerStatus from "./components/TimerStatus";
 
+import { useDispatch, useSelector } from "react-redux";
+import useSound from "use-sound";
+import {
+  decrementSecondsLeft,
+  updateSecondsLeft,
+  updateTimerMode,
+} from "./redux/timerSlice";
+let audioFx = require("./audio/tick.wav");
+
+interface TimerProps {
+  timer: {
+    secondsLeft: number;
+    percentage: number;
+    minutes: number;
+    seconds: number | string;
+    timerMode: string;
+    isPaused: boolean;
+    sessionTime: number;
+    breakTime: number;
+    isRunning: boolean;
+  };
+}
+
 function App() {
-  let presetWorkMinutes = 25;
-  let presetBreakMinutes = 5;
-  const [timerMode, setTimerMode] = useState<string>("active");
-  const [isPaused, setIsPaused] = useState<boolean>(true);
-  const [workMinutes, setWorkMinutes] = useState<number>(15); // 15 minutes work/study session
-  const [breakMinutes, setBreakMinutes] = useState<number>(5); // 5 minutes break
+  // Audio
+  // const audioElement = useRef<HTMLAudioElement>(null);
+  // const [volume, setVolume] = useState(75); // 0=muted, 1=max volume
+  const [volume, setVolume] = useState(
+    JSON.parse(localStorage.getItem("timer") as string) || 75
+  ); // 0=muted, 1=max volume,  // Get volume from local storage
+  // Save volume to local storage
+  useEffect(() => {
+    localStorage.setItem("timer", JSON.stringify(volume));
+  }, [volume]);
+  // Get volume from local storage // ? get overwriten on state initializon on refresh
+  // useEffect(() => {
+  // const volume = localStorage.getItem("timer");
+  // if (volume) {
+  // setVolume(JSON.parse(volume));
+  // }
+  // }, []);
+  const [play, { stop }] = useSound(audioFx, { volume: volume / 100 }); // 0=muted, 1=max volume
+  // State countdown interval
   const [intervalId, setIntervalId] = useState<NodeJS.Timer | null>(null);
-
-  // Timer time minutes into seconds
-  const [secondsLeft, setSecondsLeft] = useState<number>(workMinutes * 60);
-  // Convert to minutes - to display on timer
-  let minutes: number = Math.floor(secondsLeft / 60);
-  // Convert to seconds - to display on timer
-  let seconds: number | string = secondsLeft % 60;
-  if (seconds < 10) seconds = "0" + seconds; // to show two digits e.g: 09 08 05 00 instead of: 9 8 5 0
-  // Total seconds in current timer mode
-  let totalSeconds: number =
-    timerMode === "active" ? workMinutes * 60 : breakMinutes * 60;
-  // Relative % left - to display on timer
-  // let percentage: number = Math.round((secondsLeft / totalSeconds) * 100);
-  let percentage: number = (secondsLeft / totalSeconds) * 100;
-
-  const handleStartStopClick = () => {
-    if (isPaused) {
-      // if timer is paused - want to start the timer/countdown/interval
-      const newIntervalId = setInterval(() => {
-        setSecondsLeft((prevLeft) => prevLeft - 1);
-      }, 100); // TODO: increase final ms time
-      setIntervalId(newIntervalId);
-      setIsPaused(false);
-    } else {
-      // if timer not paused - want to stop the countdown/interval
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-      setIsPaused(true);
-    }
-  };
-
-  const handleResetClick = () => {
-    // set timer to paused
-    // remove interval/ stop countdown
-    setIsPaused(true);
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
-    setTimerMode("active");
-    // set to initial work time
-    // setSecondsLeft(workMinutes * 60);
-    setWorkMinutes(presetWorkMinutes);
-    setBreakMinutes(presetBreakMinutes);
-  };
+  // Redux
+  const { secondsLeft, sessionTime, breakTime, timerMode, isRunning } =
+    useSelector((state: TimerProps) => state.timer);
+  const dispatch = useDispatch();
 
   // Switch timer mode(work/break) when timer reaches 0 and update time
   useEffect(() => {
     if (secondsLeft === 0) {
+      // audioElement?.current?.play(); // play the audio
+      play(); // play the audio
+      setTimeout(() => {
+        stop();
+      }, 3700); // stop audio after 4sec
       if (timerMode === "active") {
-        setTimerMode("break");
-        setSecondsLeft(breakMinutes * 60);
+        //? setTimerMode("break");
+        //? setSecondsLeft(breakMinutes * 60);
+        dispatch(updateTimerMode("break"));
+        dispatch(updateSecondsLeft(breakTime * 60));
       } else if (timerMode === "break") {
-        setTimerMode("active");
-        setSecondsLeft(workMinutes * 60);
+        //? setTimerMode("active");
+        //? setSecondsLeft(workMinutes * 60);
+        dispatch(updateTimerMode("active"));
+        dispatch(updateSecondsLeft(sessionTime * 60));
       }
     }
   }, [secondsLeft, timerMode]);
 
-  // Session time adjustment
-  const incrementWorkTime = () => {
-    if (workMinutes >= 1) {
-      setWorkMinutes((prevTime) => prevTime + 1);
+  // Start countdown when timer is running
+  useEffect(() => {
+    if (isRunning) {
+      const newIntervalId = setInterval(() => {
+        dispatch(decrementSecondsLeft());
+        // }, 1000); // 1s
+      }, 100); // TODO: increase final ms time
+      setIntervalId(newIntervalId);
+    } else {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     }
-  };
-  const decrementWorkTime = () => {
-    if (workMinutes > 1) {
-      setWorkMinutes((prevTime) => prevTime - 1);
-    }
-  };
-
-  // Break time adjustment
-  const incrementBreakTime = () => {
-    if (breakMinutes >= 1) {
-      setBreakMinutes((prevTime) => prevTime + 1);
-    }
-  };
-  const decrementBreakTime = () => {
-    if (breakMinutes > 1) {
-      setBreakMinutes((prevTime) => prevTime - 1);
-    }
-  };
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRunning]);
 
   // Update timer if change break time amount
   useEffect(() => {
     if (timerMode === "break") {
-      setSecondsLeft(breakMinutes * 60);
+      //? setSecondsLeft(breakMinutes * 60);
+      dispatch(updateSecondsLeft(breakTime * 60));
     }
-  }, [breakMinutes]);
+  }, [breakTime]);
 
   // Update timer if change session time amount
   useEffect(() => {
     if (timerMode === "active") {
-      setSecondsLeft(workMinutes * 60);
+      //? setSecondsLeft(workMinutes * 60);
+      dispatch(updateSecondsLeft(sessionTime * 60));
     }
-  }, [workMinutes]);
+  }, [sessionTime]);
 
   return (
     <div className="App text-center">
       <h1 className="font-bold text-2xl uppercase tracking-widest mt-10">
         Pomodoro Timer
       </h1>
-      <section>
-        <Timer
-          percentage={percentage}
-          minutes={minutes}
-          seconds={seconds}
-          timerMode={timerMode}
-        />
-        <TimerStatus isPaused={isPaused} timerMode={timerMode} />
-        <TimerControls
-          handleStartStopClick={handleStartStopClick}
-          handleResetClick={handleResetClick}
-          isPaused={isPaused}
-          workMinutes={workMinutes}
-          breakMinutes={breakMinutes}
-          incrementWorkTime={incrementWorkTime}
-          decrementWorkTime={decrementWorkTime}
-          incrementBreakTime={incrementBreakTime}
-          decrementBreakTime={decrementBreakTime}
-          setBreakMinutes={setBreakMinutes}
-          setWorkMinutes={setWorkMinutes}
-        />
+      <section className="mb-14">
+        <Timer volume={volume} setVolume={setVolume} />
+        <TimerStatus />
+        <TimerControls stop={stop} />
       </section>
+      {/* <audio id="beep" ref={audioElement}>
+        <source src="./audio/tick.wav" type="audio/mpeg" />
+      </audio> */}
     </div>
   );
 }

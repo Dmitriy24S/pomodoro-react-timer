@@ -1,33 +1,36 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  decreaseBreakTime,
+  decreaseSessionTime,
+  handleResetClick,
+  handleStartStopClick,
+  increaseBreakTime,
+  increaseSessionTime,
+  updateBreakTime,
+  updateSessionTime,
+} from "../redux/timerSlice";
 
-interface TimerControlsProps {
-  handleStartStopClick: () => void;
-  handleResetClick: () => void;
-  isPaused: boolean;
-  workMinutes: number;
-  breakMinutes: number;
-  incrementWorkTime: () => void;
-  decrementWorkTime: () => void;
-  incrementBreakTime: () => void;
-  decrementBreakTime: () => void;
-  setBreakMinutes: React.Dispatch<React.SetStateAction<number>>;
-  setWorkMinutes: React.Dispatch<React.SetStateAction<number>>;
+interface TimerControlsTypes {
+  timer: {
+    handleResetClick: () => void;
+    isPaused: boolean;
+    isRunning: boolean;
+    sessionTime: number;
+    breakTime: number;
+    increaseSessionTime: () => void;
+    decreaseSessionTime: () => void;
+    increaseBreakTime: () => void;
+    decreaseBreakTime: () => void;
+  };
 }
 
-const TimerControls = ({
-  handleStartStopClick,
-  handleResetClick,
-  isPaused,
-  workMinutes,
-  breakMinutes,
-  incrementWorkTime,
-  decrementWorkTime,
-  incrementBreakTime,
-  decrementBreakTime,
-  setBreakMinutes,
-  setWorkMinutes,
-}: TimerControlsProps) => {
+const TimerControls = ({ stop }: any) => {
   const [isStarted, setIsStarted] = useState<boolean>(false);
+  const { sessionTime, breakTime, isPaused, isRunning } = useSelector(
+    (state: TimerControlsTypes) => state.timer
+  );
+  const dispatch = useDispatch();
 
   return (
     <>
@@ -36,11 +39,14 @@ const TimerControls = ({
           data-testid="startPauseTimerButton"
           className="border rounded-md py-2 px-4 w-24 hover:bg-white hover:bg-opacity-20"
           onClick={() => {
-            handleStartStopClick();
-            setIsStarted(true);
+            // handleStartStopClick();
+            dispatch(handleStartStopClick());
+            setIsStarted(true); // ? isRunning redux replace?
+            stop(); // stop audio on pause
           }}
         >
           {
+            // isPaused && isRunning // ? isRunning redux replace?
             isPaused && isStarted
               ? "Resume " // if paused after ticking down - show 'resume'
               : isPaused
@@ -51,19 +57,23 @@ const TimerControls = ({
         <button
           className="border rounded-md py-2 px-4 w-24 hover:bg-white hover:bg-opacity-20"
           onClick={() => {
-            handleResetClick();
-            setIsStarted(false);
+            // handleResetClick();
+            dispatch(handleResetClick());
+            setIsStarted(false); // ? isRunning redux replace?
+            stop(); // stop audio on reset
           }}
         >
           Restart
         </button>
       </section>
       <section className="button-container flex gap-4 justify-center mt-8">
+        {/* Session time controls */}
         <div className="session-button-container flex flex-col gap-1">
           <h5 className="opacity-80 font-light">Session</h5>
           <div className="flex items-center">
             <button
-              onClick={incrementWorkTime}
+              // onClick={incrementWorkTime}
+              onClick={() => dispatch(increaseSessionTime())}
               className="px-2 text-xl min-w-[2rem] hover:font-bold"
             >
               +
@@ -71,13 +81,15 @@ const TimerControls = ({
             <input
               aria-label="set session duration"
               type="number"
-              value={workMinutes}
+              // value={workMinutes}
+              value={sessionTime}
               onChange={(e) => {
                 if (
                   Number(e.target.value) >= 1 &&
                   Number(e.target.value) < 99
                 ) {
-                  setWorkMinutes(Number(e.target.value));
+                  // setWorkMinutes(Number(e.target.value));
+                  dispatch(updateSessionTime(Number(e.target.value)));
                 }
               }}
               id=""
@@ -86,18 +98,20 @@ const TimerControls = ({
               className="bg-transparent w-[2rem] text-center"
             />
             <button
-              onClick={decrementWorkTime}
+              // onClick={decrementWorkTime}
+              onClick={() => dispatch(decreaseSessionTime())}
               className="px-2 text-xl min-w-[2rem] hover:font-bold"
             >
               -
             </button>
           </div>
         </div>
+        {/* Break time controls */}
         <div className="break--button-container flex flex-col gap-1">
           <h5 className="opacity-80 font-light">Break</h5>
           <div className="flex items-center">
             <button
-              onClick={incrementBreakTime}
+              onClick={() => dispatch(increaseBreakTime())}
               data-testid="incrementBreakBtn"
               className="px-2 text-xl min-w-[2rem] hover:font-bold"
             >
@@ -107,13 +121,15 @@ const TimerControls = ({
               data-testid="counterBreakInput"
               aria-label="set break duration"
               type="number"
-              value={breakMinutes}
+              // value={breakMinutes}
+              value={breakTime}
               onChange={(e) => {
                 if (
                   Number(e.target.value) >= 1 &&
                   Number(e.target.value) < 99
                 ) {
-                  setBreakMinutes(Number(e.target.value));
+                  // setBreakMinutes(Number(e.target.value));
+                  dispatch(updateBreakTime(Number(e.target.value)));
                 }
               }}
               id=""
@@ -122,7 +138,8 @@ const TimerControls = ({
               className="bg-transparent w-[2rem] text-center"
             />
             <button
-              onClick={decrementBreakTime}
+              // onClick={decrementBreakTime}
+              onClick={() => dispatch(decreaseBreakTime())}
               className="px-2 text-xl min-w-[2rem] hover:font-bold"
             >
               -
