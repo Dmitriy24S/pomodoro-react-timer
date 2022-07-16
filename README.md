@@ -1,4 +1,14 @@
-# Getting Started with Create React App
+# Pomodoro React Timer
+
+![Design preview for Pomodoro React Timer](./design/preview.png)
+
+## Welcome 
+
+Pomodoro React Timer. Created with React & Tailwind CSS.
+
+[Live Demo](https://dmitriy24s.github.io/pomodoro-react-timer/) 👈
+
+## Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
